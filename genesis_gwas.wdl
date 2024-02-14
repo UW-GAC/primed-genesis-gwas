@@ -11,6 +11,7 @@ workflow genesis_gwas {
         String outcome_type
         String covariates_string
         String pheno_id = "subject_id"
+        String test_type = "Single"
 	    String results_file = "gwas"
     }
 
@@ -27,6 +28,7 @@ workflow genesis_gwas {
             this_outcome_type = outcome_type,
             this_covariates_string = covariates_string,
             this_pheno_id = pheno_id,
+            this_test_type = test_type,
             this_results_file = results_file
     }
 
