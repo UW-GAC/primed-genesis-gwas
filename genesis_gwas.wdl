@@ -10,7 +10,7 @@ workflow genesis_gwas {
         String outcome_name
         String outcome_type
         String covariates_string
-        String pheno_id = "subject_id"
+        String pheno_id = "sample_id"
         String test_type = "Single"
 	    String results_file = "gwas"
     }
