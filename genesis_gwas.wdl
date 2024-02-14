@@ -1,5 +1,6 @@
 version 1.0
 
+# forked the original repo to update some syntax to WDL version 1.0
 import "https://raw.githubusercontent.com/UW-GAC/genesis_wdl/v1_5/genesis_GWAS.wdl" as genesis
 import "https://raw.githubusercontent.com/manning-lab/vcfToGds/main/vcfToGds.wdl" as gds
 
