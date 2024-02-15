@@ -12,7 +12,6 @@ workflow genesis_gwas {
         String outcome_type
         String covariates_string
         String pheno_id = "sample_id"
-        String test_type = "Single"
 	    String results_file = "gwas"
     }
 
@@ -29,14 +28,13 @@ workflow genesis_gwas {
             this_outcome_type = outcome_type,
             this_covariates_string = covariates_string,
             this_pheno_id = pheno_id,
-            this_test_type = test_type,
-            this_results_file = results_file
+            this_results_file = results_file,
+            this_test_type = "Single"
     }
 
     output {
         File null_model = genesis_gwas_wf.null_model
         Array[File] raw_association_files = genesis_gwas_wf.raw_association_files
-        Array[File] raw_association_varresults_files = genesis_gwas_wf.raw_association_varresults_files
         File all_summary_statistics = genesis_gwas_wf.all_summary_statistics
         File top_summary_statistics = genesis_gwas_wf.top_summary_statistics
         File summary_plots = genesis_gwas_wf.summary_plots
