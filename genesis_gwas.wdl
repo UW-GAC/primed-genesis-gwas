@@ -12,7 +12,8 @@ workflow genesis_gwas {
         String outcome_type
         String covariates_string
         String pheno_id = "sample_id"
-	    String results_file = "gwas"
+        String results_file = "gwas"
+        String strand = "+"
     }
 
     call gds.vcfToGds_wf {
@@ -32,11 +33,51 @@ workflow genesis_gwas {
             this_test_type = "Single"
     }
 
+    Array[Array[File]] stat_files = [genesis_gwas_wf.raw_association_files, [genesis_gwas_wf.all_summary_statistics, genesis_gwas_wf.top_summary_statistics]]
+    scatter(f in flatten(stat_files)) {
+        call file_in_data_model {
+            input:
+                csv_file = f,
+                outcome_type = outcome_type,
+                strand = strand
+        }
+    }
+
     output {
         File null_model = genesis_gwas_wf.null_model
-        Array[File] raw_association_files = genesis_gwas_wf.raw_association_files
-        File all_summary_statistics = genesis_gwas_wf.all_summary_statistics
-        File top_summary_statistics = genesis_gwas_wf.top_summary_statistics
+        Array[File] summary_statistics = file_in_data_model.tsv_file
         File summary_plots = genesis_gwas_wf.summary_plots
+    }
+}
+
+
+task file_in_data_model {
+    input {
+        File csv_file
+        String outcome_type
+        String strand
+    }
+
+    command <<<
+        Rscript -e "\
+        library(dplyr); \
+        library(readr); \
+        gsr <- read_csv('~{csv_file}')[,-1]; \
+        gsr <- select(gsr, SNPID=snpID, chromosome=chr, position=pos, effect_allele=ref, other_allele=alt, effect_allele_freq=freq, mac=MAC, p_value=ends_with('pval'), beta=Est, se=Est.SE); \
+        gsr <- mutate(gsr, strand='~{strand}', beta_ci_lower=(beta + qnorm((1-0.95)*0.05)*se), beta_ci_upper=(beta + qnorm(1-((1-0.95))*0.05)*se), p_value_log10=-log10(p_value)); \
+        if ('~{outcome_type}' == 'Dichotomous') { \
+            gsr <- mutate(gsr, odds_ratio=exp(beta), OR_ci_lower=exp(beta_ci_lower), OR_ci_upper=exp(beta_ci_upper)); \
+        }; \
+        out_file <- sub('.csv', '.tsv', csv_file, fixed=TRUE); \
+        write_tsv(gsr, out_file); \
+        "
+    >>>
+
+    output {
+        File tsv_file = sub(basename(csv_file), ".csv", ".tsv")
+    }
+
+    runtime {
+        docker: "ghcr.io/anvilproject/anvil-rstudio-bioconductor:3.18.0"
     }
 }
