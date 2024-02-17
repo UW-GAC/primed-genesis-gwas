@@ -59,6 +59,7 @@ task file_in_data_model {
     }
 
     Int disk_size = ceil(3*(size(csv_file, "GB"))) + 12
+    String out_file = sub(basename(csv_file), ".csv", ".tsv")
 
     command <<<
         Rscript -e "\
@@ -72,11 +73,15 @@ task file_in_data_model {
         }; \
         out_file <- sub('.csv', '.tsv', csv_file, fixed=TRUE); \
         write_tsv(gsr, out_file); \
+        writeLines(nrow(gsr), 'n_variants.txt'); \
         "
+        md5sum ~{out_file} | cut -d " " -f 1 | sed 's/ //g' > md5sum.txt
     >>>
 
     output {
-        File tsv_file = sub(basename(csv_file), ".csv", ".tsv")
+        File tsv_file = out_file
+        String md5sum = read_string("md5sum.txt")
+        Int n_variants = read_int("n_variants.txt")
     }
 
     runtime {
