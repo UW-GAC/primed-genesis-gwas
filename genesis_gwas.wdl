@@ -12,7 +12,7 @@ workflow genesis_gwas {
         String outcome_type
         String covariates_string
         String pheno_id = "sample_id"
-        String results_file = "gwas"
+        String results_prefix = "gwas"
         String strand = "+"
     }
 
@@ -29,7 +29,7 @@ workflow genesis_gwas {
             this_outcome_type = outcome_type,
             this_covariates_string = covariates_string,
             this_pheno_id = pheno_id,
-            this_results_file = results_file,
+            this_results_file = results_prefix,
             this_test_type = "Single"
     }
 
@@ -39,7 +39,8 @@ workflow genesis_gwas {
             input:
                 csv_file = f,
                 outcome_type = outcome_type,
-                strand = strand
+                strand = strand,
+                results_prefix = results_prefix
         }
     }
 
@@ -56,6 +57,7 @@ task file_in_data_model {
         File csv_file
         String outcome_type
         String strand
+        String results_prefix
     }
 
     Int disk_size = ceil(3*(size(csv_file, "GB"))) + 12
@@ -74,6 +76,9 @@ task file_in_data_model {
         out_file <- sub('.csv', '.tsv', csv_file, fixed=TRUE); \
         write_tsv(gsr, out_file); \
         writeLines(nrow(gsr), 'n_variants.txt'); \
+        chr_string <- sub('^~{results_prefix}\\.', '', sub('\\.tsv\\.gz$', '', tsv_file)); \
+        if (grepl('variants', chr_string)) chr <- 'ALL' else chr <- chr_string; \
+        writeLines(chr, 'chromosome.txt')
         "
         md5sum ~{out_file} | cut -d " " -f 1 | sed 's/ //g' > md5sum.txt
     >>>
@@ -81,6 +86,7 @@ task file_in_data_model {
     output {
         File tsv_file = out_file
         String md5sum = read_string("md5sum.txt")
+        String chromosome = read_int("chromosome.txt")
         Int n_variants = read_int("n_variants.txt")
     }
 
