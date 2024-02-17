@@ -58,6 +58,8 @@ task file_in_data_model {
         String strand
     }
 
+    Int disk_size = ceil(3*(size(csv_file, "GB"))) + 12
+
     command <<<
         Rscript -e "\
         library(dplyr); \
@@ -79,5 +81,7 @@ task file_in_data_model {
 
     runtime {
         docker: "ghcr.io/anvilproject/anvil-rstudio-bioconductor:3.18.0"
+        disks: "local-disk " + disk_size + " SSD"
+        memory: "16 GB"
     }
 }
