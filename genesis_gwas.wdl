@@ -60,7 +60,7 @@ task file_in_data_model {
         String results_prefix
     }
 
-    Int disk_size = ceil(3*(size(csv_file, "GB"))) + 12
+    Int disk_size = ceil(3*(size(csv_file, "GB"))) + 10
     String out_file = sub(basename(csv_file), ".csv", ".tsv")
 
     command <<<
@@ -91,7 +91,7 @@ task file_in_data_model {
     }
 
     runtime {
-        docker: "ghcr.io/anvilproject/anvil-rstudio-bioconductor:3.18.0"
+        docker: "us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.16.0"
         disks: "local-disk " + disk_size + " SSD"
         memory: "16 GB"
     }
