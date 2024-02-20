@@ -85,7 +85,7 @@ task file_in_data_model {
     output {
         File tsv_file = out_file
         String md5sum = read_string("md5sum.txt")
-        String chromosome = read_int("chromosome.txt")
+        String chromosome = read_string("chromosome.txt")
         Int n_variants = read_int("n_variants.txt")
     }
 
