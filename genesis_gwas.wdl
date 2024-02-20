@@ -76,7 +76,7 @@ task file_in_data_model {
         out_file <- sub('.csv', '.tsv', '~{csv_file}', fixed=TRUE); \
         write_tsv(gsr, out_file); \
         writeLines(as.character(nrow(gsr)), 'n_variants.txt'); \
-        chr_string <- sub('^~{results_prefix}\\\\.', '', sub('\\\\.tsv\\\\.gz$', '', tsv_file)); \
+        chr_string <- sub('^~{results_prefix}\\\\.', '', sub('\\\\.tsv\\\\.gz$', '', out_file)); \
         if (grepl('variants', chr_string)) chr <- 'ALL' else chr <- chr_string; \
         writeLines(chr, 'chromosome.txt')
         "
