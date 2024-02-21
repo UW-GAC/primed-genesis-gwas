@@ -3,16 +3,21 @@ version 1.0
 # forked the original repo to update some syntax to WDL version 1.0
 import "https://raw.githubusercontent.com/UW-GAC/genesis_wdl/v1_5/genesis_GWAS.wdl" as genesis
 import "https://raw.githubusercontent.com/manning-lab/vcfToGds/main/vcfToGds.wdl" as gds
+import "https://raw.githubusercontent.com/UW-GAC/primed-file-checks/main/validate_gsr_model.wdl" as validate
 
 workflow genesis_gwas {
     input {
         Array[File] vcf_files
         File pheno_file
-        String outcome_name
+        String outcome
         String outcome_type
-        String covariates_string
+        String outcome_unit
+        String outcome_definition
+        String covariates
         String pheno_id = "sample_id"
+        Boolean transform = false
         String results_prefix = "gwas"
+        String genome_build = "hg38"
         String strand = "+"
     }
 
@@ -25,12 +30,14 @@ workflow genesis_gwas {
         input:
             these_genotype_files = vcfToGds_wf.gds_files,
             this_pheno_file = pheno_file,
-            this_outcome_name = outcome_name,
-            this_outcome_type = outcome_type,
-            this_covariates_string = covariates_string,
+            this_outcome_name = outcome,
+            this_outcome_type = if outcome_type == "binary" then "Dichotomous" else "Continuous",
+            this_covariates_string = covariates,
             this_pheno_id = pheno_id,
+            this_transform = if transform then "transform" else "none",
             this_results_file = results_prefix,
-            this_test_type = "Single"
+            this_test_type = "Single",
+            this_genome_build = genome_build
     }
 
     Array[Array[File]] stat_files = [genesis_gwas_wf.raw_association_files, [genesis_gwas_wf.all_summary_statistics, genesis_gwas_wf.top_summary_statistics]]
@@ -38,10 +45,26 @@ workflow genesis_gwas {
         call file_in_data_model {
             input:
                 csv_file = f,
-                outcome_type = outcome_type,
+                trait_type = outcome_type,
                 strand = strand,
                 results_prefix = results_prefix
         }
+    }
+
+    call prepare_gsr_data_model {
+        input:
+            pheno_file = pheno_file,
+            data_files = file_in_data_model.tsv_file,
+            md5sum = file_in_data_model.md5sum,
+            chromosome = file_in_data_model.chromosome,
+            n_variants = file_in_data_model.n_variants,
+            trait = outcome,
+            trait_type = outcome_type,
+            trait_unit = outcome_unit,
+            trait_transformation = if transform then "rank-normalized" else "none",
+            trait_definition = outcome_definition,
+            covariates = sub(covariates, ",", "|"),
+            reference_assembly = if genome_build == "hg38" then "GRCh38" else "GRCh37"
     }
 
     output {
@@ -55,7 +78,7 @@ workflow genesis_gwas {
 task file_in_data_model {
     input {
         File csv_file
-        String outcome_type
+        String trait_type
         String strand
         String results_prefix
     }
@@ -68,10 +91,17 @@ task file_in_data_model {
         library(dplyr); \
         library(readr); \
         gsr <- read_csv('~{csv_file}')[,-1]; \
-        gsr <- select(gsr, SNPID=snpID, chromosome=chr, position=pos, effect_allele=ref, other_allele=alt, effect_allele_freq=freq, mac=MAC, p_value=ends_with('pval'), beta=Est, se=Est.SE); \
-        gsr <- mutate(gsr, strand='~{strand}', beta_ci_lower=(beta + qnorm((1-0.95)*0.05)*se), beta_ci_upper=(beta + qnorm(1-((1-0.95))*0.05)*se), p_value_log10=-log10(p_value)); \
-        if ('~{outcome_type}' == 'Dichotomous') { \
-            gsr <- mutate(gsr, odds_ratio=exp(beta), OR_ci_lower=exp(beta_ci_lower), OR_ci_upper=exp(beta_ci_upper)); \
+        gsr <- select(gsr, SNPID=snpID, chromosome=chr, position=pos, \
+            effect_allele=ref, other_allele=alt, effect_allele_freq=freq, mac=MAC, \
+            p_value=ends_with('pval'), beta=Est, se=Est.SE); \
+        gsr <- mutate(gsr, strand='~{strand}', \
+            beta_ci_lower=(beta + qnorm((1-0.95)*0.05)*se), \
+            beta_ci_upper=(beta + qnorm(1-((1-0.95))*0.05)*se), \
+          _value_log10=-log10(p_value)); \
+        if ('~{trait_type}' == 'binary') { \
+            gsr <- mutate(gsr, odds_ratio=exp(beta), \
+                OR_ci_lower=exp(beta_ci_lower), \
+                OR_ci_upper=exp(beta_ci_upper)); \
         }; \
         write_tsv(gsr, '~{out_file}'); \
         writeLines(as.character(nrow(gsr)), 'n_variants.txt'); \
@@ -93,5 +123,90 @@ task file_in_data_model {
         docker: "us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.16.0"
         disks: "local-disk " + disk_size + " SSD"
         memory: "16 GB"
+    }
+}
+
+
+task prepare_gsr_data_model {
+    input {
+        File pheno_file
+        Array[String] data_files
+        Array[String] md5sum
+        Array[String] chromosome
+        Array[Int] n_variants
+        String consent_code
+        String contributor_contact
+        String trait
+        String trait_type
+        String trait_unit
+        String trait_transformation
+        String trait_definition
+        String covariates
+        String reference_assembly
+        String genotyping_technology
+        String genotyping_platform
+        Boolean is_imputed
+        String? imputation_reference_panel
+        String? imputation_reference_panel_detail
+        String? imputation_quality_filter
+        String cohorts
+        String population_descriptor
+        String population_labels
+        String? population_proportions
+        String? countries_of_recruitment
+    }
+
+    # need to compute n_case and n_ctrl for binary traits
+
+    command <<<
+        Rscript -e "\
+        library(dplyr); \
+        library(readr); \
+        parse_array <- function(x) unlist(strsplit(x, split=' ', fixed=TRUE)); \
+        file_path <- parse_array('~{sep=' ' data_files}'); \
+        md5sum <- parse_array('~{sep=' ' md5sum}'); \
+        chromosome <- parse_array('~{sep=' ' chromosome}'); \
+        n_variants <- parse_array('~{sep=' ' n_variants}'); \
+        total_variants <- n_variants[grep('all_variants', basename(file_path)]; \
+        dat <- tibble(file_path=file_path, \
+            md5sum=md5sum, \
+            chromosome=chromosome, \
+            n_variants=n_variants, \
+            file_type='data'); \
+        write_tsv(dat, 'gsr_file_table.tsv'); \
+        phen <- read_csv('~{pheno_file}'); \
+        analysis <- list(gsr_source='PRIMED', \
+            consent_code='~{consent_code}', \
+            upload_date=Sys.Date(), \
+            contributor_contact='~{contributor_contact}', \
+            trait='~{trait}', \
+            trait_type='~{trait_type}', \
+            trait_unit='~{trait_unit}', \
+            trait_transformation=~'{trait_transformation}', \
+            trait_definition='~{trait_definition}', \
+            covariates='~{covariates}', \
+            reference_assembly='~{reference_assembly}', \
+            n_variants=total_variants, \
+            genotyping_technology='~{genotyping_technology}', \
+            genotyping_platform='~{genotyping_platform}', \
+            is_imputed='~{true='TRUE' false='FALSE' is_imputed}', \
+            n_samp=nrow(phen), \
+            cohorts='~{cohorts}', \
+            population_descriptor='~{population_descriptor}', \
+            population_labels='~{population_labels}' \
+            ); \
+        write_tsv(tibble(field=names(analysis), value=unlist(analysis, use.names=FALSE)), 'analysis_file_table.tsv'); \
+        "
+    >>>
+
+    output {
+        Map[String, File] table_files = {
+            "analysis": "analysis_table.tsv",
+            "gsr_file": "gsr_file_table.tsv"
+        }
+    }
+
+    runtime {
+        docker: "us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.16.0"
     }
 }
