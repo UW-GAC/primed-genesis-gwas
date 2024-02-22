@@ -63,7 +63,7 @@ workflow genesis_gwas {
             trait_unit = outcome_unit,
             trait_transformation = if transform then "rank-normalized" else "none",
             trait_definition = outcome_definition,
-            covariates = sub(covariates, ",", "|"),
+            covariates = covariates,
             reference_assembly = if genome_build == "hg38" then "GRCh38" else "GRCh37"
     }
 
@@ -156,6 +156,9 @@ task prepare_gsr_data_model {
         String? countries_of_recruitment
     }
 
+    String covariate_string = sub(covariates, ",", "|")
+    String pop_label_string = sub(population_labels, ",", "|")
+
     # need to compute n_case and n_ctrl for binary traits
 
     command <<<
@@ -184,7 +187,7 @@ task prepare_gsr_data_model {
             trait_unit='~{trait_unit}', \
             trait_transformation='~{trait_transformation}', \
             trait_definition='~{trait_definition}', \
-            covariates='~{covariates}', \
+            covariates='~{covariate_string}', \
             reference_assembly='~{reference_assembly}', \
             n_variants=as.character(total_variants), \
             genotyping_technology='~{genotyping_technology}', \
@@ -193,7 +196,7 @@ task prepare_gsr_data_model {
             n_samp=as.character(nrow(phen)), \
             cohorts='~{cohorts}', \
             population_descriptor='~{population_descriptor}', \
-            population_labels='~{population_labels}' \
+            population_labels='~{pop_label_string}' \
             ); \
         write_tsv(tibble(field=names(analysis), value=unlist(analysis, use.names=FALSE)), 'analysis_table.tsv'); \
         "
