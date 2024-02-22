@@ -97,7 +97,7 @@ task file_in_data_model {
         gsr <- mutate(gsr, strand='~{strand}', \
             beta_ci_lower=(beta + qnorm((1-0.95)*0.05)*se), \
             beta_ci_upper=(beta + qnorm(1-((1-0.95))*0.05)*se), \
-          _value_log10=-log10(p_value)); \
+            p_value_log10=-log10(p_value)); \
         if ('~{trait_type}' == 'binary') { \
             gsr <- mutate(gsr, odds_ratio=exp(beta), \
                 OR_ci_lower=exp(beta_ci_lower), \
