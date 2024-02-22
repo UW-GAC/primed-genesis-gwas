@@ -167,7 +167,7 @@ task prepare_gsr_data_model {
         md5sum <- parse_array('~{sep=' ' md5sum}'); \
         chromosome <- parse_array('~{sep=' ' chromosome}'); \
         n_variants <- parse_array('~{sep=' ' n_variants}'); \
-        total_variants <- n_variants[grep('all_variants', basename(file_path)]; \
+        total_variants <- n_variants[grep('all_variants', basename(file_path))]; \
         dat <- tibble(file_path=file_path, \
             md5sum=md5sum, \
             chromosome=chromosome, \
