@@ -177,20 +177,20 @@ task prepare_gsr_data_model {
         phen <- read_csv('~{pheno_file}'); \
         analysis <- list(gsr_source='PRIMED', \
             consent_code='~{consent_code}', \
-            upload_date=Sys.Date(), \
+            upload_date=as.character(Sys.Date()), \
             contributor_contact='~{contributor_contact}', \
             trait='~{trait}', \
             trait_type='~{trait_type}', \
             trait_unit='~{trait_unit}', \
-            trait_transformation=~'{trait_transformation}', \
+            trait_transformation='~{trait_transformation}', \
             trait_definition='~{trait_definition}', \
             covariates='~{covariates}', \
             reference_assembly='~{reference_assembly}', \
-            n_variants=total_variants, \
+            n_variants=as.character(total_variants), \
             genotyping_technology='~{genotyping_technology}', \
             genotyping_platform='~{genotyping_platform}', \
             is_imputed='~{true='TRUE' false='FALSE' is_imputed}', \
-            n_samp=nrow(phen), \
+            n_samp=as.character(nrow(phen)), \
             cohorts='~{cohorts}', \
             population_descriptor='~{population_descriptor}', \
             population_labels='~{population_labels}' \
