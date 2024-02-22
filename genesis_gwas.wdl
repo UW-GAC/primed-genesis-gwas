@@ -195,7 +195,7 @@ task prepare_gsr_data_model {
             population_descriptor='~{population_descriptor}', \
             population_labels='~{population_labels}' \
             ); \
-        write_tsv(tibble(field=names(analysis), value=unlist(analysis, use.names=FALSE)), 'analysis_file_table.tsv'); \
+        write_tsv(tibble(field=names(analysis), value=unlist(analysis, use.names=FALSE)), 'analysis_table.tsv'); \
         "
     >>>
 
