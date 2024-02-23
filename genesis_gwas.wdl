@@ -161,11 +161,11 @@ task prepare_gsr_data_model {
         Boolean is_imputed
         String? imputation_reference_panel
         String? imputation_reference_panel_detail
-        String? imputation_quality_filter
+        Float? imputation_quality_filter
         String cohorts
         String population_descriptor
         String population_labels
-        String? population_proportions
+        String population_proportions
         String countries_of_recruitment
         String? countries_of_birth
         String analysis_method
@@ -177,8 +177,11 @@ task prepare_gsr_data_model {
     }
 
     String covariate_string = sub(covariates, ",", "|")
+    String tech_string = sub(genotyping_technology, ",", "|")
+    String platform_string = sub(genotyping_platform, ",", "|")
+    String cohort_string = sub(cohorts, ",", "|")
     String pop_label_string = sub(population_labels, ",", "|")
-    String pop_prop_string = sub(select_first([population_proportions, "NA"]), ",", "|")
+    String pop_prop_string = sub(population_proportions, ",", "|")
     String recruitment_string = sub(countries_of_recruitment, ",", "|")
     String birth_string = sub(select_first([countries_of_birth, "NA"]), ",", "|")
 
@@ -211,8 +214,8 @@ task prepare_gsr_data_model {
             reference_assembly='~{reference_assembly}', \
             n_variants=total_variants, \
             min_MAC_filter='~{min_MAC_filter}', \
-            genotyping_technology='~{genotyping_technology}', \
-            genotyping_platform='~{genotyping_platform}', \
+            genotyping_technology='~{tech_string}', \
+            genotyping_platform='~{platform_string}', \
             is_imputed='~{true='TRUE' false='FALSE' is_imputed}', \
             imputation_reference_panel='~{default='NA' imputation_reference_panel}', \
             imputation_reference_panel_detail='~{default='NA' imputation_reference_panel_detail}', \
