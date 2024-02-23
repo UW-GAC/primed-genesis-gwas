@@ -276,7 +276,7 @@ task prepare_gsr_data_model {
         }; \
         analysis_vec <- unlist(analysis)
         analysis_vec <- analysis_vec[analysis_vec != 'NA']
-        write_tsv(tibble(field=names(analysis_vec), value=analysis_vec, 'analysis_table.tsv'); \
+        write_tsv(tibble(field=names(analysis_vec), value=analysis_vec), 'analysis_table.tsv'); \
         "
     >>>
 
