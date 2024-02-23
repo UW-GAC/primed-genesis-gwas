@@ -22,6 +22,11 @@ workflow genesis_gwas {
         String genome_build = "hg38"
         String strand = "+"
         String age_column = "age_at_observation"
+        String model_url = "https://raw.githubusercontent.com/UW-GAC/primed_data_models/main/PRIMED_GSR_data_model.json"
+        String workspace_name
+        String workspace_namespace
+        Boolean import_tables = true
+        Boolean overwrite = true
     }
 
     call gds.vcfToGds_wf {
@@ -80,10 +85,21 @@ workflow genesis_gwas {
             analysis_software = "GENESIS"
     }
 
+    call validate.validate_gsr_model {
+        input: table_files = prepare_gsr_data_model.table_files,
+               model_url = model_url,
+               workspace_name = workspace_name,
+               workspace_namespace = workspace_namespace,
+               overwrite = overwrite,
+               import_tables = import_tables
+    }
+
     output {
         File null_model = genesis_gwas_wf.null_model
         Array[File] summary_statistics = file_in_data_model.tsv_file
         File summary_plots = genesis_gwas_wf.summary_plots
+        File validation_report = validate_gsr_model.validation_report
+        Array[File]? tables = validate_gsr_model.tables
     }
 }
 

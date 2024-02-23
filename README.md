@@ -3,6 +3,8 @@ Workflow for running GENESIS on PRIMED data
 
 Uses workflow from https://github.com/AnalysisCommons/genesis_wdl/tree/v1_5 with additional step of VCF conversion from https://github.com/manning-lab/vcfToGds
 
+Formats output in the [PRIMED GSR data model](https://github.com/UW-GAC/primed_data_models/blob/main/PRIMED_GSR_data_model.json)
+
 input | description
 --- | ---
 vcf_files | Array of vcf files (google bucket paths)
@@ -34,6 +36,10 @@ population_labels | name given to a population that describes or classifies it a
 population_proportions | proportion of participants from each population in the same order mapping to the values in the population_labels variable
 countries_of_recruitment | Reported countries of recruitment
 countries_of_birth | (optional) Reported countries of birth
+import_tables | A boolean indicating whether data model tables should be imported to the workspace.
+overwrite | A boolean indicating whether existing rows in the workspace data tables should be overwritten.
+workspace_name | A string with the workspace name. e.g, if the workspace URL is https://anvil.terra.bio/#workspaces/fc-product-demo/Terra-Workflows-Quickstart, the workspace name is "Terra-Workflows-Quickstart"
+workspace_namespace | A string with the workspace name. e.g, if the workspace URL is https://anvil.terra.bio/#workspaces/fc-product-demo/Terra-Workflows-Quickstart, the workspace namespace is "fc-product-demo"
 
 
 See the original [README](https://github.com/AnalysisCommons/genesis_wdl/blob/v1_5/README.md) for description of additional optional inputs
