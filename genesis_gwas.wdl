@@ -166,7 +166,8 @@ task prepare_gsr_data_model {
         String population_descriptor
         String population_labels
         String? population_proportions
-        String? countries_of_recruitment
+        String countries_of_recruitment
+        String? countries_of_birth
         String analysis_method
         String analysis_software
         File pheno_file
@@ -177,6 +178,9 @@ task prepare_gsr_data_model {
 
     String covariate_string = sub(covariates, ",", "|")
     String pop_label_string = sub(population_labels, ",", "|")
+    String pop_prop_string = sub(select_first([population_proportions, "NA"]), ",", "|")
+    String recruitment_string = sub(countries_of_recruitment, ",", "|")
+    String birth_string = sub(select_first([countries_of_birth, "NA"]), ",", "|")
 
     command <<<
         Rscript -e "\
@@ -210,12 +214,18 @@ task prepare_gsr_data_model {
             genotyping_technology='~{genotyping_technology}', \
             genotyping_platform='~{genotyping_platform}', \
             is_imputed='~{true='TRUE' false='FALSE' is_imputed}', \
+            imputation_reference_panel='~{default='NA' imputation_reference_panel}', \
+            imputation_reference_panel_detail='~{default='NA' imputation_reference_panel_detail}', \
+            imputation_quality_filter='~{default='NA' imputation_quality_filter}', \
             is_meta_analysis='FALSE', \
             analysis_method='~{analysis_method}', \
             analysis_software='~{analysis_software}', \
             cohorts='~{cohorts}', \
             population_descriptor='~{population_descriptor}', \
-            population_labels='~{pop_label_string}' \
+            population_labels='~{pop_label_string}', \
+            population_proportions='~{pop_prop_string}', \
+            countries_of_recruitment='~{recruitment_string}', \
+            countries_of_birth='~{birth_string}'
             ); \
         phen <- read_csv('~{pheno_file}'); \
         n_samp <- nrow(phen); \
@@ -264,7 +274,9 @@ task prepare_gsr_data_model {
                 ); \
             }; \
         }; \
-        write_tsv(tibble(field=names(analysis), value=unlist(analysis, use.names=FALSE)), 'analysis_table.tsv'); \
+        analysis_vec <- unlist(analysis)
+        analysis_vec <- analysis_vec[analysis_vec != 'NA']
+        write_tsv(tibble(field=names(analysis_vec), value=analysis_vec, 'analysis_table.tsv'); \
         "
     >>>
 
