@@ -14,11 +14,14 @@ workflow genesis_gwas {
         String outcome_unit
         String outcome_definition
         String covariates
+        File? kinship_matrix
         String pheno_id = "sample_id"
         Boolean transform = false
+        Int min_mac = 5
         String results_prefix = "gwas"
         String genome_build = "hg38"
         String strand = "+"
+        String age_column = "age_at_observation"
     }
 
     call gds.vcfToGds_wf {
@@ -33,8 +36,10 @@ workflow genesis_gwas {
             this_outcome_name = outcome,
             this_outcome_type = if outcome_type == "binary" then "Dichotomous" else "Continuous",
             this_covariates_string = covariates,
+            this_kinship_matrix = kinship_matrix,
             this_pheno_id = pheno_id,
             this_transform = if transform then "transform" else "none",
+            this_min_mac = min_mac,
             this_results_file = results_prefix,
             this_test_type = "Single",
             this_genome_build = genome_build
@@ -51,6 +56,8 @@ workflow genesis_gwas {
         }
     }
 
+    String method = if defined(kinship_matrix) then (if outcome_type == "binary" then "GLMM" else "LMM") else (if outcome_type == "binary" then "logistic regression" else "linear regression")
+
     call prepare_gsr_data_model {
         input:
             pheno_file = pheno_file,
@@ -64,7 +71,13 @@ workflow genesis_gwas {
             trait_transformation = if transform then "rank-normalized" else "none",
             trait_definition = outcome_definition,
             covariates = covariates,
-            reference_assembly = if genome_build == "hg38" then "GRCh38" else "GRCh37"
+            reference_assembly = if genome_build == "hg38" then "GRCh38" else "GRCh37",
+            min_MAC_filter = min_mac,
+            age_column = age_column,
+            sex_column = "sex",
+            female_value = "F",
+            analysis_method = method,
+            analysis_software = "GENESIS"
     }
 
     output {
@@ -129,7 +142,6 @@ task file_in_data_model {
 
 task prepare_gsr_data_model {
     input {
-        File pheno_file
         Array[String] data_files
         Array[String] md5sum
         Array[String] chromosome
@@ -143,6 +155,7 @@ task prepare_gsr_data_model {
         String trait_definition
         String covariates
         String reference_assembly
+        Int min_MAC_filter
         String genotyping_technology
         String genotyping_platform
         Boolean is_imputed
@@ -154,12 +167,16 @@ task prepare_gsr_data_model {
         String population_labels
         String? population_proportions
         String? countries_of_recruitment
+        String analysis_method
+        String analysis_software
+        File pheno_file
+        String age_column
+        String sex_column
+        String female_value
     }
 
     String covariate_string = sub(covariates, ",", "|")
     String pop_label_string = sub(population_labels, ",", "|")
-
-    # need to compute n_case and n_ctrl for binary traits
 
     command <<<
         Rscript -e "\
@@ -177,7 +194,6 @@ task prepare_gsr_data_model {
             n_variants=n_variants, \
             file_type='data'); \
         write_tsv(dat, 'gsr_file_table.tsv'); \
-        phen <- read_csv('~{pheno_file}'); \
         analysis <- list(gsr_source='PRIMED', \
             consent_code='~{consent_code}', \
             upload_date=as.character(Sys.Date()), \
@@ -189,15 +205,65 @@ task prepare_gsr_data_model {
             trait_definition='~{trait_definition}', \
             covariates='~{covariate_string}', \
             reference_assembly='~{reference_assembly}', \
-            n_variants=as.character(total_variants), \
+            n_variants=total_variants, \
+            min_MAC_filter='~{min_MAC_filter}', \
             genotyping_technology='~{genotyping_technology}', \
             genotyping_platform='~{genotyping_platform}', \
             is_imputed='~{true='TRUE' false='FALSE' is_imputed}', \
-            n_samp=as.character(nrow(phen)), \
+            is_meta_analysis='FALSE', \
+            analysis_method='~{analysis_method}', \
+            analysis_software='~{analysis_software}', \
             cohorts='~{cohorts}', \
             population_descriptor='~{population_descriptor}', \
             population_labels='~{pop_label_string}' \
             ); \
+        phen <- read_csv('~{pheno_file}'); \
+        n_samp <- nrow(phen); \
+        if ('~{trait_type}' == 'binary') { \
+            n_case <- sum(na.omit(phen[['~{trait}']] == 1)); \
+            n_ctrl <- sum(na.omit(phen[['~{trait}']] == 0)); \
+            n_eff <- 4(1/n_case + 1/n_ctrl)
+            analysis <- c(analysis, list( \
+                n_samp=n_samp, \
+                n_case=n_case, \
+                n_ctrl=n_ctrl, \
+                n_effective=n.eff) \
+                ); \
+        } else { \
+            analysis <- c(analysis, list( \
+                n_samp=n_samp, \
+                n_effective=n.samp) \
+                ); \
+        }; \
+        if (is.element('~{sex_column}', names(phen))) { \
+            prop_f <- sum(phen[['~{sex_column}']] == '~{female_value}') / n_samp
+            analysis <- c(analysis, list( \
+                proportion_female=prop_f) \
+                ); \
+        }; \
+        if (is.element('~{age_column}', names(phen))) { \
+            age <- na.omit(phen[['~{age_column}']])
+            analysis <- c(analysis, list( \
+                age_mean=mean(age), \
+                age_median=median(age), \
+                age_min=min(age), \
+                age_max=max(age) \
+                ); \
+            if ('~{trait_type}' == 'binary') { \
+                age_case <- na.omit(phen[['~{age_column}']][phen[['~{trait}']] == 1]); \
+                age_ctrl <- na.omit(phen[['~{age_column}']][phen[['~{trait}']] == 0]); \
+                analysis <- c(analysis, list( \
+                    age_mean_case=mean(age_case), \
+                    age_median_case=median(age_case), \
+                    age_min_case=min(age_case), \
+                    age_max_case=max(age_case), \
+                    age_mean_ctrl=mean(age_ctrl), \
+                    age_median_ctrl=median(age_ctrl), \
+                    age_min_ctrl=min(age_ctrl), \
+                    age_max_ctrl=max(age_ctrl) \
+                ); \
+            }; \
+        }; \
         write_tsv(tibble(field=names(analysis), value=unlist(analysis, use.names=FALSE)), 'analysis_table.tsv'); \
         "
     >>>
