@@ -222,7 +222,7 @@ task prepare_gsr_data_model {
         if ('~{trait_type}' == 'binary') { \
             n_case <- sum(na.omit(phen[['~{trait}']] == 1)); \
             n_ctrl <- sum(na.omit(phen[['~{trait}']] == 0)); \
-            n_eff <- 4(1/n_case + 1/n_ctrl)
+            n_eff <- 4(1/n_case + 1/n_ctrl); \
             analysis <- c(analysis, list( \
                 n_samp=n_samp, \
                 n_case=n_case, \
@@ -236,13 +236,13 @@ task prepare_gsr_data_model {
                 ); \
         }; \
         if (is.element('~{sex_column}', names(phen))) { \
-            prop_f <- sum(phen[['~{sex_column}']] == '~{female_value}') / n_samp
+            prop_f <- sum(phen[['~{sex_column}']] == '~{female_value}') / n_samp; \
             analysis <- c(analysis, list( \
                 proportion_female=prop_f) \
                 ); \
         }; \
         if (is.element('~{age_column}', names(phen))) { \
-            age <- na.omit(phen[['~{age_column}']])
+            age <- na.omit(phen[['~{age_column}']]); \
             analysis <- c(analysis, list( \
                 age_mean=mean(age), \
                 age_median=median(age), \
