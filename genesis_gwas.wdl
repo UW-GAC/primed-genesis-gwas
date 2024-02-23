@@ -232,7 +232,7 @@ task prepare_gsr_data_model {
         } else { \
             analysis <- c(analysis, list( \
                 n_samp=n_samp, \
-                n_effective=n.samp) \
+                n_effective=n_samp) \
                 ); \
         }; \
         if (is.element('~{sex_column}', names(phen))) { \
