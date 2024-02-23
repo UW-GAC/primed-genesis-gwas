@@ -247,7 +247,7 @@ task prepare_gsr_data_model {
                 age_mean=mean(age), \
                 age_median=median(age), \
                 age_min=min(age), \
-                age_max=max(age) \
+                age_max=max(age)) \
                 ); \
             if ('~{trait_type}' == 'binary') { \
                 age_case <- na.omit(phen[['~{age_column}']][phen[['~{trait}']] == 1]); \
@@ -260,7 +260,7 @@ task prepare_gsr_data_model {
                     age_mean_ctrl=mean(age_ctrl), \
                     age_median_ctrl=median(age_ctrl), \
                     age_min_ctrl=min(age_ctrl), \
-                    age_max_ctrl=max(age_ctrl) \
+                    age_max_ctrl=max(age_ctrl)) \
                 ); \
             }; \
         }; \
