@@ -222,12 +222,12 @@ task prepare_gsr_data_model {
         if ('~{trait_type}' == 'binary') { \
             n_case <- sum(na.omit(phen[['~{trait}']] == 1)); \
             n_ctrl <- sum(na.omit(phen[['~{trait}']] == 0)); \
-            n_eff <- 4(1/n_case + 1/n_ctrl); \
+            n_eff <- 4/(1/n_case + 1/n_ctrl); \
             analysis <- c(analysis, list( \
                 n_samp=n_samp, \
                 n_case=n_case, \
                 n_ctrl=n_ctrl, \
-                n_effective=n.eff) \
+                n_effective=n_eff) \
                 ); \
         } else { \
             analysis <- c(analysis, list( \
