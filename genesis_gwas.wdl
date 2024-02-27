@@ -5,7 +5,7 @@ import "https://raw.githubusercontent.com/UW-GAC/genesis_wdl/v1_5/genesis_GWAS.w
 import "https://raw.githubusercontent.com/manning-lab/vcfToGds/main/vcfToGds.wdl" as gds
 import "https://raw.githubusercontent.com/UW-GAC/primed-file-checks/main/validate_gsr_model.wdl" as validate
 
-workflow genesis_gwas {
+workflow primed_genesis_gwas {
     input {
         Array[File] vcf_files
         File pheno_file
