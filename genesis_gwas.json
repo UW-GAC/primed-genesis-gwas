@@ -1,0 +1,28 @@
+{
+    "primed_genesis_gwas.vcf_files" : [ 
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf_maf001/ALL.chr21.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.bi_maf001.vcf.bgz", 
+        "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf_maf001/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.bi_maf001.vcf.bgz" 
+    ],
+    "primed_genesis_gwas.pheno_file": "gs://fc-2261a727-cd4b-4712-9b55-a661a29f88f4/GWAS/phenotypes_ldl_gwas.csv",
+    "primed_genesis_gwas.outcome": "ldl",
+    "primed_genesis_gwas.outcome_type": "quantitative",
+    "primed_genesis_gwas.outcome_unit": "mg/dL",
+    "primed_genesis_gwas.outcome_definition": "Blood mass concentration of low-density lipoprotein cholesterol",
+    "primed_genesis_gwas.covariates": "sex,age_at_observation,population",
+    "primed_genesis_gwas.pheno_id": "sample_id",
+    "primed_genesis_gwas.age_column": "age_at_observation",
+    "primed_genesis_gwas.results_prefix": "LDL",
+    "primed_genesis_gwas.genome_build": "hg19",
+    "primed_genesis_gwas.workspace_name": "PRIMED_example_genotype_1000G",
+    "primed_genesis_gwas.workspace_namespace": "primed-cc-scratch",
+    "prepare_gsr_data_model.consent_code": "NRES",
+    "prepare_gsr_data_model.contributor_contact": "myemail@example.com",
+    "prepare_gsr_data_model.genotyping_technology": "WGS",
+    "prepare_gsr_data_model.genotyping_platform": "Illumina",
+    "prepare_gsr_data_model.is_imputed": false,
+    "prepare_gsr_data_model.cohorts": "1000G",
+    "prepare_gsr_data_model.population_descriptor": "superpopulation",
+    "prepare_gsr_data_model.population_labels": "AFR,AMR,EAS,EUR,SAS",
+    "prepare_gsr_data_model.population_proportions": "0.26,0.14,0.2,0.2,0.2",
+    "prepare_gsr_data_model.countries_of_recruitment": "Bangladesh,Barbados,China,Columbia,Finland,Gambia,Italy,Japan,Kenya,Nigeria,Pakistan,Peru,Sierra Leone,Spain,UK,USA,Vietnam"
+}

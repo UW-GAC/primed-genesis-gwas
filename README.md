@@ -1,9 +1,38 @@
 # primed-genesis-gwas
+
 Workflow for running GENESIS on PRIMED data
 
-Uses workflow from https://github.com/AnalysisCommons/genesis_wdl/tree/v1_5 with additional step of VCF conversion from https://github.com/manning-lab/vcfToGds
+## Data preparation
 
-Formats output in the [PRIMED GSR data model](https://github.com/UW-GAC/primed_data_models/blob/main/PRIMED_GSR_data_model.json)
+### Genotype files
+
+The workflow expects genotype data in VCF (gzipped or not). (BCF is currently not accepted but can be added; please submit an issue if you need this option.) The PRIMED data model specifies that genotype data should be in hg38 but this workflow does accept hg19 (see `genome_build` input). The `vcf_files` input is an array, so VCF files may be split by chromosome (this is most efficient as workflow jobs will be scattered by input file). If the genotypes were imputed, set `is_imputed` to `true`.
+
+### Phenotype
+
+The workflow expects a phenotype file in CSV format. A sample identifier column
+in this file links the phenotypes and genotypes; the name of this column is controlled
+by the `pheno_id` input with default "sample_id" following the PRIMED data model.
+If sex is included in the phenotype file, the column should be called "sex" with
+values "M" and "F"; GENESIS will use this information to calculate allele frequency
+on the sex chromosomes. If age is included, specify the column names with `age_column`
+(default "age_at_observation"); this will be used to calculate age-related metadata
+for the PRIMED data model.
+
+[This notebook](https://uw-gac.github.io/primed_example_notebooks/analysis/pheno_file_gwas.nb.html) demonstrates how to prepare a phenotype file in R.
+
+### Kinship matrix
+
+For sample sets with recent relatedness, a kinship matrix may be included in either RData or CSV format (see `kinship_matrix` input). The row and column names must match the phenotype and genotype files.
+
+## Workflow steps
+
+1. Convert VCF to GDS using this workflow: https://github.com/manning-lab/vcfToGds
+2. Run GENESIS using this workflow: https://github.com/AnalysisCommons/genesis_wdl/tree/v1_5
+3. Format output in the [PRIMED GSR data model](https://github.com/UW-GAC/primed_data_models/blob/main/PRIMED_GSR_data_model.json)
+
+
+## Workflow inputs
 
 input | description
 --- | ---
@@ -42,4 +71,4 @@ workspace_name | A string with the workspace name. e.g, if the workspace URL is 
 workspace_namespace | A string with the workspace name. e.g, if the workspace URL is https://anvil.terra.bio/#workspaces/fc-product-demo/Terra-Workflows-Quickstart, the workspace namespace is "fc-product-demo"
 
 
-See the original [README](https://github.com/AnalysisCommons/genesis_wdl/blob/v1_5/README.md) for description of additional optional inputs
+See the original [README](https://github.com/AnalysisCommons/genesis_wdl/blob/v1_5/README.md) for description of additional optional inputs.
