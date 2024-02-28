@@ -217,6 +217,12 @@ task prepare_gsr_data_model {
             n_variants=n_variants, \
             file_type='data'); \
         write_tsv(dat, 'gsr_file_table.tsv'); \
+        writeLines(as.character(total_variants), 'total_variants.txt')
+        "
+        Rscript -e "\
+        library(dplyr); \
+        library(readr); \
+        total_variants <- readLines('total_variants.txt')
         analysis <- list(gsr_source='PRIMED', \
             consent_code='~{consent_code}', \
             upload_date=as.character(Sys.Date()), \
