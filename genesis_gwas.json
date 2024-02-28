@@ -23,7 +23,7 @@
         "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf_maf001/ALL.chr21.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.bi_maf001.vcf.bgz", 
         "gs://terra-featured-workspaces/GWAS/1kg-genotypes/vcf_maf001/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.bi_maf001.vcf.bgz" 
     ],
-    "primed_genesis_gwas.pheno_file": "gs://fc-2261a727-cd4b-4712-9b55-a661a29f88f4/GWAS/phenotypes_ldl_gwas.csv",
+    "primed_genesis_gwas.pheno_file": "gs://fc-8dc38d1d-c3f4-46de-8d4c-176967d6663e/GWAS/phenotypes_ldl_gwas.csv",
     "primed_genesis_gwas.outcome": "ldl",
     "primed_genesis_gwas.outcome_type": "quantitative",
     "primed_genesis_gwas.outcome_unit": "mg/dL",
