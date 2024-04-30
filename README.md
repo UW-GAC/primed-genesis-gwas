@@ -16,7 +16,7 @@ by the `pheno_id` input with default "sample_id" following the PRIMED data model
 If sex is included in the phenotype file, the column should be called "sex" with
 values "M" and "F"; GENESIS will use this information to calculate allele frequency
 on the sex chromosomes. If age is included, specify the column names with `age_column`
-(default "age_at_observation"); this will be used to calculate age-related metadata
+(default "age_at_obs"); this will be used to calculate age-related metadata
 for the PRIMED data model.
 
 [This notebook](https://uw-gac.github.io/primed_example_notebooks/analysis/pheno_file_gwas.nb.html) demonstrates how to prepare a phenotype file in R.
@@ -50,7 +50,7 @@ min_mac | Minimum minor allele count for threshold (default 5)
 results_prefix | Prefix of output files (default "gwas")
 genome_build | Allowed values: hg38, hg19 (default hg38)
 strand | Allowed values: +, -. forward, reverse (default +)
-age_column | (optional) Name of the column in pheno_file with age (default: age_of_observation)
+age_column | (optional) Name of the column in pheno_file with age (default: age_at_obs)
 consent_code | Consent abbreviation
 contributor_contact | Email of the PRIMED contributor who can be contacted for data related questions
 genotyping_technology | Allowed values: WGS, WES, genome-wide array, exome array, other array

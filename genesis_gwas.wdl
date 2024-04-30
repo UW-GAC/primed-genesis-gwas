@@ -21,7 +21,7 @@ workflow primed_genesis_gwas {
         String results_prefix = "gwas"
         String genome_build = "hg38"
         String strand = "+"
-        String age_column = "age_at_observation"
+        String age_column = "age_at_obs"
         String model_url = "https://raw.githubusercontent.com/UW-GAC/primed_data_models/main/PRIMED_GSR_data_model.json"
         String workspace_name
         String workspace_namespace
