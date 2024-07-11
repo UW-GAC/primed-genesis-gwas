@@ -216,7 +216,7 @@ task prepare_gsr_data_model {
             chromosome=chromosome, \
             n_variants=n_variants, \
             file_type='data'); \
-        write_tsv(dat, 'gsr_file_table.tsv'); \
+        write_tsv(dat, 'association_file_table.tsv'); \
         writeLines(as.character(total_variants), 'total_variants.txt')
         "
         Rscript -e "\
@@ -301,14 +301,14 @@ task prepare_gsr_data_model {
         }; \
         analysis_vec <- unlist(analysis)
         analysis_vec <- analysis_vec[analysis_vec != 'NA']
-        write_tsv(tibble(field=names(analysis_vec), value=analysis_vec), 'analysis_table.tsv'); \
+        write_tsv(tibble(field=names(analysis_vec), value=analysis_vec), 'association_analysis_table.tsv'); \
         "
     >>>
 
     output {
         Map[String, File] table_files = {
-            "analysis": "analysis_table.tsv",
-            "gsr_file": "gsr_file_table.tsv"
+            "association_analysis": "association_analysis_table.tsv",
+            "association_file": "association_file_table.tsv"
         }
     }
 
