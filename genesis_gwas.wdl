@@ -55,6 +55,7 @@ workflow primed_genesis_gwas {
     scatter(f in flatten(stat_files)) {
         call file_in_data_model {
             input:
+                dest_bucket = dest_bucket,
                 csv_file = f,
                 trait_type = outcome_type,
                 strand = strand,
