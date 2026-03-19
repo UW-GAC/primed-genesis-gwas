@@ -7,6 +7,7 @@ import "https://raw.githubusercontent.com/UW-GAC/primed-file-checks/main/validat
 
 workflow primed_genesis_gwas {
     input {
+        String dest_bucket
         Array[File] vcf_files
         File pheno_file
         String outcome
@@ -96,7 +97,7 @@ workflow primed_genesis_gwas {
 
     output {
         File null_model = genesis_gwas_wf.null_model
-        Array[File] summary_statistics = file_in_data_model.tsv_file
+        Array[String] summary_statistics = file_in_data_model.tsv_file
         File summary_plots = genesis_gwas_wf.summary_plots
         File validation_report = validate_gsr_model.validation_report
         Array[File]? tables = validate_gsr_model.tables
@@ -106,6 +107,7 @@ workflow primed_genesis_gwas {
 
 task file_in_data_model {
     input {
+        String dest_bucket
         File csv_file
         String trait_type
         String strand
@@ -133,6 +135,10 @@ task file_in_data_model {
                 OR_ci_upper=exp(beta_ci_upper)); \
         }; \
         write_tsv(gsr, '~{out_file}'); \
+        dest_bucket <- sub('\\\\/$', '', '~{dest_bucket}'); \
+        new_file <- file.path(dest_bucket, '~{out_file}'); \
+        AnVIL::gsutil_cp('~{out_file}', new_file); \
+        writeLines(new_file, 'file_path.txt'); \
         writeLines(as.character(nrow(gsr)), 'n_variants.txt'); \
         chr_string <- sub('^~{results_prefix}\\\\.', '', sub('\\\\.tsv\\\\.gz$', '', '~{out_file}')); \
         if (grepl('variants', chr_string)) chr <- 'ALL' else chr <- chr_string; \
@@ -142,7 +148,7 @@ task file_in_data_model {
     >>>
 
     output {
-        File tsv_file = out_file
+        String tsv_file = read_string("file_path.txt")
         String md5sum = read_string("md5sum.txt")
         String chromosome = read_string("chromosome.txt")
         Int n_variants = read_int("n_variants.txt")
